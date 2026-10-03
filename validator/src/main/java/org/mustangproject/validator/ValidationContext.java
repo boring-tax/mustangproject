@@ -120,6 +120,20 @@ public class ValidationContext {
 		results.clear();
 		isValid = true;
 		clearCustomXML();
+		generation = null;
+		profile = null;
+		signature = null;
+	}
+
+	/***
+	 * clears the results and everything recognized about the previous file (format, PDF presence),
+	 * so that the context can be reused to validate another file
+	 */
+	public void reset() {
+		clear();
+		format = "CII";
+		hasPDF = false;
+		filename = null;
 	}
 
 	/***

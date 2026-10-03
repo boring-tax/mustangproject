@@ -443,7 +443,7 @@ public class XMLValidator extends Validator {
 
 	private String getInfoXml(long endTime, long startXMLTime) {
 		String generation = context.getGeneration() != null ? context.getGeneration() : "invalid";
-		String profile = context.getProfile() != null ? context.getProfile() : "invalid";
+		String profile = context.getProfile() != null ? new XMLTools().escapeElementEntities(context.getProfile()) : "invalid";
 		String validatorVersion = Version.VERSION;
 		long duration = endTime - startXMLTime;
 

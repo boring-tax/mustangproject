@@ -89,13 +89,18 @@ public class ZUGFeRDValidator {
 	}
 
 	private String internalValidate(String contextFilename, InputStream inputStream, long inputLength) {
-		context.clear();
+		// the validator may be reused for several files, forget everything about the previous one
+		context.reset();
+		sha1Checksum = null;
+		pdfValidity = false;
+		displayXMLValidationOutput = false;
+		signature = null;
 		StringBuilder finalStringResult = new StringBuilder();
 		SimpleDateFormat isoDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Date date = new Date();
 		startTime = Calendar.getInstance().getTimeInMillis();
 		context.setFilename(contextFilename); // fallback to provided name
-		finalStringResult.append("<validation filename='").append(contextFilename).append("' datetime='").append(isoDF.format(date)).append("'>");
+		finalStringResult.append("<validation filename=\"").append(contextFilename == null ? "" : new XMLTools().escapeAttributeEntities(contextFilename)).append("\" datetime=\"").append(isoDF.format(date)).append("\">");
 
 		boolean isPDF = false;
 		byte[] content = null;
@@ -254,17 +259,19 @@ public class ZUGFeRDValidator {
 	}
 
 	public String validate(InputStream inputStream, String fileNameOfInputStream) {
-		long inputLength;
+		if (inputStream == null) {
+			return internalValidate(fileNameOfInputStream, null, 0);
+		}
+		// available() is not the length of the stream (e.g. 0 or 1 for network or zip streams), so read it completely
+		byte[] content;
 		try {
-			inputLength = inputStream == null ? 0 : inputStream.available();
+			content = IOUtils.toByteArray(inputStream);
 		} catch (IOException ex) {
 			throw new UncheckedIOException(ex);
-		}
-		try {
-			return internalValidate(fileNameOfInputStream, inputStream, inputLength);
 		} finally {
 			StreamHelper.close(inputStream);
 		}
+		return validate(content, fileNameOfInputStream);
 	}
 
 	public String validate(byte[] bytes, String fileNameOfInputStream) {
